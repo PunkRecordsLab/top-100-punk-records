@@ -709,6 +709,11 @@ function ficha(c,when,voterName,forThis){
     const src = c.img ? (/^https?:|^data:/.test(c.img) ? c.img : IMG_BASE+c.img) : "";
     if(!src){ drawPortraitMono(); cb(); return; }
     const pim=new Image();
+    /* Sem crossOrigin, desenhar imagem de outro domínio "contamina" o canvas e
+       toDataURL() lança SecurityError — o certificado quebra. O CDN precisa
+       responder com Access-Control-Allow-Origin; se não responder, cai no
+       onerror e usa o monograma, que é degradação aceitável. */
+    pim.crossOrigin="anonymous";
     pim.onload=()=>{
       const bw=cw-16, bh=412, pos=c.imgPos||DEFAULT_IMG_POS;
       const s=Math.max(bw/pim.width,bh/pim.height), iw=pim.width*s, ih=pim.height*s;
@@ -807,6 +812,7 @@ function drawCharPhoto(ctx,c,f,cb){
   const src = c.img ? (/^https?:|^data:/.test(c.img)?c.img:IMG_BASE+c.img) : "";
   if(!src) { drawMonogramPhoto(ctx,c,f.x,f.y,f.w,f.h); return cb(); }
   const im=new Image();
+  im.crossOrigin="anonymous"; // idem drawPortraitPhoto: sem isso o canvas é contaminado
   im.onload=()=>{
     const s=Math.max(f.w/im.width,f.h/im.height), iw=im.width*s, ih=im.height*s;
     ctx.save();
